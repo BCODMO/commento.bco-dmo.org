@@ -1,0 +1,10 @@
+.env
+backups
+backups/*
+postgres
+postgres/*
+logs
+logs/*
+certs
+certs/*
+nginx/dhparams.pem

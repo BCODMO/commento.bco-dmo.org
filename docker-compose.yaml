@@ -1,0 +1,61 @@
+version: '3'
+
+services:
+ 
+  commento:
+    image: registry.gitlab.com/commento/commento
+    container_name: commento
+    restart: always
+    environment:
+      COMMENTO_ORIGIN: https://commento.bco-dmo.org
+      COMMENTO_POSTGRES: postgres://${POSTGRES_USER}:${POSTGRES_PSWD}@postgres:5432/commento?sslmode=disable
+      COMMENTO_PORT: 8080
+      COMMENTO_FORBID_NEW_OWNERS: "true"
+      COMMENTO_SMTP_HOST: ${SMTP_HOST}
+      COMMENTO_SMTP_PORT: ${SMTP_PORT}
+      COMMENTO_SMTP_USERNAME: ${SMTP_USERNAME}
+      COMMENTO_SMTP_PASSWORD: ${SMTP_PSWD}
+      COMMENTO_SMTP_FROM_ADDRESS: ${SMTP_FROM_ADDR}
+      COMMENTO_GOOGLE_KEY: ${GOOGLE_KEY}
+      COMMENTO_GOOGLE_SECRET: ${GOOGLE_SECRET}
+      COMMENTO_GITHUB_KEY: ${GITHUB_KEY}
+      COMMENTO_GITHUB_SECRET: ${GITHUB_SECRET}
+      COMMENTO_TWITTER_KEY: ${TWITTER_KEY}
+      COMMENTO_TWITTER_SECRET: ${TWITTER_SECRET}
+    networks:
+      - internal
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_DB: commento
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PSWD}
+    ports:
+      - 5432:5432
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+      - ./backups:/backups
+    networks:
+      - internal
+  nginx:
+    image: nginx
+    container_name: nginx
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx/commento.conf:/etc/nginx/conf.d/commento.conf
+      - ./nginx/dhparams.pem:/etc/nginx/dhparams.pem
+      - ./certs:/etc/ssl/private
+      - ./logs/nginx:/var/log/nginx
+    networks:
+      - internal
+
+networks:
+  internal:
